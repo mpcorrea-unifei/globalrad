@@ -7,14 +7,76 @@ import json
 from datetime import datetime
 import xgboost as xgb
 from sklearn.linear_model import Lasso
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # ------------------------------------------------------------
-# Funções auxiliares para cálculo de H0 e sazonalidade
+# Configuração da página
 # ------------------------------------------------------------
-Gsc = 0.0820  # MJ m⁻² min⁻¹
+st.set_page_config(
+    page_title="RadSolar - Estimativa de Radiação Solar",
+    page_icon="☀️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# CSS customizado
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #f39c12;
+        text-align: center;
+        margin-bottom: 0;
+    }
+    .sub-header {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #7f8c8d;
+        margin-bottom: 2rem;
+    }
+    .result-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #2c3e50;
+    }
+    .metric-label {
+        font-size: 1rem;
+        color: #576574;
+    }
+    .stButton>button {
+        background-color: #f39c12;
+        color: white;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.6rem 2rem;
+        border: none;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #e67e22;
+        transform: scale(1.02);
+    }
+    .sidebar .sidebar-content {
+        background: linear-gradient(180deg, #ffecd2 0%, #fcb69f 100%);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ------------------------------------------------------------
+# Funções auxiliares (cálculo de H0, carregamento de modelos)
+# ------------------------------------------------------------
+Gsc = 0.0820
 
 def extraterrestrial_radiation(doy, lat_deg):
-    """Calcula H0 (MJ/m²/dia) e duração do dia N (horas)."""
     phi = math.radians(lat_deg)
     delta = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)
     omega_s = math.acos(-math.tan(phi) * math.tan(delta))
@@ -25,9 +87,6 @@ def extraterrestrial_radiation(doy, lat_deg):
     )
     return H0
 
-# ------------------------------------------------------------
-# Carregar modelos salvos (com tratamento de erros)
-# ------------------------------------------------------------
 @st.cache_resource
 def load_lasso_model(path='H_lasso.json'):
     with open(path, 'r') as f:
@@ -35,10 +94,7 @@ def load_lasso_model(path='H_lasso.json'):
     model = Lasso(alpha=data['alpha'])
     model.coef_ = np.array(data['coef_'])
     model.intercept_ = np.array(data['intercept_'])
-    scaler_mean = np.array(data['scaler_mean'])
-    scaler_scale = np.array(data['scaler_scale'])
-    feature_names = data['feature_names']
-    return model, scaler_mean, scaler_scale, feature_names
+    return model, np.array(data['scaler_mean']), np.array(data['scaler_scale']), data['feature_names']
 
 @st.cache_resource
 def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboost.json'):
@@ -46,43 +102,73 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
     model.load_model(model_path)
     with open(scaler_path, 'r') as f:
         scaler_data = json.load(f)
-    scaler_mean = np.array(scaler_data['scaler_mean'])
-    scaler_scale = np.array(scaler_data['scaler_scale'])
-    feature_names = scaler_data['feature_names']
-    return model, scaler_mean, scaler_scale, feature_names
+    return model, np.array(scaler_data['scaler_mean']), np.array(scaler_data['scaler_scale']), scaler_data['feature_names']
 
 # ------------------------------------------------------------
-# Interface do Streamlit
+# Sidebar – informações e configurações
 # ------------------------------------------------------------
-st.set_page_config(page_title="Estimador de Radiação Solar", layout="centered")
-st.title("☀️ Estimativa de Radiação Solar Global Diária")
-st.markdown("""
-Preencha os dados meteorológicos do dia para obter a radiação solar estimada pelos modelos 
-**Lasso** e **XGBoost**, treinados para Itajubá - MG.
-""")
+with st.sidebar:
+    st.image("https://img.icons8.com/color/96/000000/sun--v1.png", width=80)
+    st.markdown("## Sobre")
+    st.markdown("""
+    Este aplicativo estima a **radiação solar global diária** (MJ/m²/dia) 
+    utilizando modelos de machine learning (Lasso e XGBoost) treinados 
+    com dados de Itajubá-MG.
+    
+    **Modelos disponíveis:** Lasso (linear regularizado) e XGBoost (gradient boosting).
+    """)
+    st.markdown("---")
+    st.markdown("### ℹ️ Como usar")
+    st.markdown("""
+    1. Insira a data e os dados meteorológicos.
+    2. Clique em **Estimar Radiação**.
+    3. Compare os resultados no painel principal.
+    """)
+    st.markdown("---")
+    st.caption(f"© {datetime.now().year} - RadSolar v1.0")
 
-# Entradas do usuário
-col1, col2 = st.columns(2)
+# ------------------------------------------------------------
+# Cabeçalho principal
+# ------------------------------------------------------------
+st.markdown('<div class="main-header">☀️ RadSolar</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Estimativa Inteligente de Radiação Solar Global</div>', unsafe_allow_html=True)
+
+# ------------------------------------------------------------
+# Layout de entrada de dados (colunas)
+# ------------------------------------------------------------
+col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
+    st.markdown("### 📅 Data & Local")
     data = st.date_input("Data", value=datetime(2025, 1, 1))
-    tmax = st.number_input("Temperatura máxima (°C)", value=30.0, step=0.1)
-    tmin = st.number_input("Temperatura mínima (°C)", value=18.0, step=0.1)
-    rh = st.number_input("Umidade relativa média (%)", value=65.0, min_value=0.0, max_value=100.0, step=0.1)
-with col2:
-    wind = st.number_input("Velocidade do vento (m/s)", value=2.0, step=0.1)
-    pressure = st.number_input("Pressão atmosférica (hPa)", value=920.0, step=0.1)
     latitude = st.number_input("Latitude (°)", value=-22.42, step=0.01, 
-                               help="Padrão: Itajubá. Altere somente se o modelo for recalibrado.")
+                               help="Padrão: Itajubá. Alterar apenas se o modelo for recalibrado.")
+    
+with col2:
+    st.markdown("### 🌡️ Temperatura & Umidade")
+    tmax = st.number_input("Temp. máxima (°C)", value=30.0, step=0.1)
+    tmin = st.number_input("Temp. mínima (°C)", value=18.0, step=0.1)
+    rh = st.number_input("Umidade relativa (%)", value=65.0, min_value=0.0, max_value=100.0, step=0.1)
 
-# Botão de cálculo
-if st.button("Estimar Radiação Solar"):
-    # Calcular variáveis derivadas
+with col3:
+    st.markdown("### 💨 Vento & Pressão")
+    wind = st.number_input("Vento (m/s)", value=2.0, step=0.1)
+    pressure = st.number_input("Pressão (hPa)", value=920.0, step=0.1)
+
+# Botão centralizado
+_, center_col, _ = st.columns([0.3, 0.4, 0.3])
+with center_col:
+    estimar = st.button("🔆 Estimar Radiação Solar", use_container_width=True)
+
+# ------------------------------------------------------------
+# Processamento e exibição de resultados
+# ------------------------------------------------------------
+if estimar:
     doy = data.timetuple().tm_yday
     H0 = extraterrestrial_radiation(doy, latitude)
     sin_doy = math.sin(2 * math.pi * doy / 365)
     cos_doy = math.cos(2 * math.pi * doy / 365)
     
-    # Criar DataFrame com as features na ordem correta
+    # DataFrame de entrada
     feature_names = ['Tmax', 'Tmin', 'RHmean', 'Wind', 'Pressure', 'H0', 'sin_doy', 'cos_doy']
     entrada = pd.DataFrame([{
         'Tmax': tmax,
@@ -97,44 +183,91 @@ if st.button("Estimar Radiação Solar"):
     
     resultados = {}
     
-    # 1. Previsão com Lasso
+    # Previsão Lasso
     try:
-        lasso_model, lasso_mean, lasso_scale, lasso_features = load_lasso_model()
-        X_lasso = entrada[lasso_features].values
-        X_lasso_scaled = (X_lasso - lasso_mean) / lasso_scale
-        pred_lasso = lasso_model.predict(X_lasso_scaled)[0]
+        lasso_model, lasso_mean, lasso_scale, lasso_feat = load_lasso_model()
+        X_l = entrada[lasso_feat].values
+        X_l_scaled = (X_l - lasso_mean) / lasso_scale
+        pred_lasso = lasso_model.predict(X_l_scaled)[0]
         resultados['Lasso'] = pred_lasso
     except FileNotFoundError:
-        st.warning("Modelo Lasso não encontrado (H_lasso.json).")
+        st.warning("⚠️ Modelo Lasso (H_lasso.json) não encontrado.")
     except Exception as e:
-        st.error(f"Erro ao carregar/prever com Lasso: {e}")
+        st.error(f"Erro no Lasso: {e}")
     
-    # 2. Previsão com XGBoost
+    # Previsão XGBoost
     try:
-        xgb_model, xgb_mean, xgb_scale, xgb_features = load_xgboost_model()
-        X_xgb = entrada[xgb_features].values
-        X_xgb_scaled = (X_xgb - xgb_mean) / xgb_scale
-        dmatrix = xgb.DMatrix(X_xgb_scaled, feature_names=xgb_features)
+        xgb_model, xgb_mean, xgb_scale, xgb_feat = load_xgboost_model()
+        X_x = entrada[xgb_feat].values
+        X_x_scaled = (X_x - xgb_mean) / xgb_scale
+        dmatrix = xgb.DMatrix(X_x_scaled, feature_names=xgb_feat)
         pred_xgb = xgb_model.predict(dmatrix)[0]
         resultados['XGBoost'] = pred_xgb
     except FileNotFoundError:
-        st.warning("Modelo XGBoost ou scaler não encontrado (H_xgboost.json / scaler_H_xgboost.json).")
+        st.warning("⚠️ Modelo XGBoost (H_xgboost.json) não encontrado.")
     except Exception as e:
-        st.error(f"Erro ao carregar/prever com XGBoost: {e}")
+        st.error(f"Erro no XGBoost: {e}")
     
-    # Exibir resultados
     if resultados:
-        st.success("Estimativas geradas com sucesso!")
-        # Tabela com os valores
-        df_res = pd.DataFrame.from_dict(resultados, orient='index', columns=['Radiação (MJ/m²/dia)'])
-        df_res.index.name = 'Modelo'
-        st.table(df_res.style.format("{:.3f}"))
+        # Exibição dos parâmetros calculados
+        with st.expander("📊 Parâmetros calculados", expanded=True):
+            cols_param = st.columns(4)
+            cols_param[0].metric("Dia do ano", doy)
+            cols_param[1].metric("Rad. Extraterrestre (H₀)", f"{H0:.2f} MJ/m²/dia")
+            cols_param[2].metric("sin(doy)", f"{sin_doy:.3f}")
+            cols_param[3].metric("cos(doy)", f"{cos_doy:.3f}")
         
-        # Explicação adicional
-        st.markdown("""
-        **Interpretação:**  
-        Os valores correspondem à radiação solar global diária (onda curta) que atinge uma superfície horizontal, 
-        em MJ/m² por dia. Esse é o principal insumo para modelos de produtividade agrícola (ex.: FAO-56).
+        st.markdown("---")
+        st.markdown("## 📈 Resultados das Estimativas")
+        
+        # Cards com valores estimados
+        card_cols = st.columns(len(resultados))
+        for idx, (modelo, valor) in enumerate(resultados.items()):
+            with card_cols[idx]:
+                st.markdown(f"""
+                <div class="result-card">
+                    <div class="metric-label">{modelo}</div>
+                    <div class="metric-value">{valor:.2f}</div>
+                    <div class="metric-label">MJ/m²/dia</div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # Gráfico comparativo com Plotly
+        st.markdown("### 📊 Comparação Visual")
+        fig = go.Figure()
+        modelos_list = list(resultados.keys())
+        valores_list = list(resultados.values())
+        
+        fig.add_trace(go.Bar(
+            x=modelos_list,
+            y=valores_list,
+            marker_color=['#f39c12', '#2c3e50'],
+            text=[f'{v:.2f}' for v in valores_list],
+            textposition='outside',
+            textfont=dict(size=16),
+            width=0.5
+        ))
+        fig.update_layout(
+            title=None,
+            xaxis_title='Modelo',
+            yaxis_title='Radiação (MJ/m²/dia)',
+            template='plotly_white',
+            height=400,
+            margin=dict(l=20, r=20, t=20, b=20),
+            showlegend=False
+        )
+        fig.update_yaxes(range=[0, max(valores_list)*1.2])
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Interpretação
+        st.markdown("---")
+        st.info("""
+        **Interpretação:** Os valores indicam a energia solar total (onda curta) recebida em uma superfície horizontal 
+        ao longo do dia. Essa grandeza é fundamental para estimar a evapotranspiração de referência (ETo) pelo método 
+        FAO-56 e alimentar modelos de produtividade agrícola.
+        
+        - **Lasso** é um modelo linear regularizado, interpretável e leve.
+        - **XGBoost** captura relações não lineares, geralmente mais preciso.
         """)
     else:
-        st.error("Nenhum modelo pôde ser carregado. Verifique se os arquivos JSON estão na pasta do aplicativo.")
+        st.error("❌ Nenhum modelo pôde ser carregado. Verifique se os arquivos JSON estão na pasta do aplicativo.")
