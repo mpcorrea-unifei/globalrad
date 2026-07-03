@@ -108,7 +108,7 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
 # Sidebar – informações e configurações
 # ------------------------------------------------------------
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/000000/sun--v1.png", width=80)
+    st.image("Fapemig.png", width=80)
     st.markdown("## Sobre")
     st.markdown("""
     Este aplicativo estima a **radiação solar global diária** (MJ/m²/dia) 
