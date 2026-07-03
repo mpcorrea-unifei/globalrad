@@ -113,9 +113,11 @@ with st.sidebar:
     st.markdown("""
     Este aplicativo estima a **radiação solar global diária** (MJ/m²/dia) 
     utilizando modelos de machine learning (Lasso e XGBoost) treinados 
-    com dados de Itajubá-MG.
+    com dados coletados em Itajubá-MG entre julho/23 a setembro/25.
     
     **Modelos disponíveis:** Lasso (linear regularizado) e XGBoost (gradient boosting).
+    
+    **Projeto Fapemig APQ-00768-18**
     """)
     st.markdown("---")
     st.markdown("### ℹ️ Como usar")
@@ -130,7 +132,7 @@ with st.sidebar:
 # ------------------------------------------------------------
 # Cabeçalho principal
 # ------------------------------------------------------------
-st.markdown('<div class="main-header">☀️ RadSolar</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">☀️ SolarRad</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Estimativa Inteligente de Radiação Solar Global</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------
