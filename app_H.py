@@ -107,13 +107,27 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
 # ------------------------------------------------------------
 # Sidebar – informações e configurações
 # ------------------------------------------------------------
-with st.sidebar:
-    col1, col2, col3, col4 = st.columns(4)
-    col1.image("Fapemig.png", width=80)
-    col2.image("Unifei.png", width=80)
-    col3.image("logo_IRN_b.jpg", width=80)
-    col4.image("logo_CAT-removebg-preview.png", width=80)
-    
+#with st.sidebar:
+#    col1, col2, col3, col4 = st.columns(4)
+#    col1.image("Fapemig.png", width=80)
+#    col2.image("Unifei.png", width=80)
+#    col3.image("logo_IRN_b.jpg", width=80)
+#    col4.image("logo_CAT-removebg-preview.png", width=80)
+ with st.sidebar:
+    urls = [
+        "Fapemig.png",
+        "Unifei.png",
+        "logo_IRN_b.jpg",
+        "logo_CAT-removebg-preview.png"
+    ]
+
+    # Construir HTML com flexbox para centralizar as imagens
+    imgs_html = '<div style="display: flex; justify-content: center; gap: 10px;">'
+    for url in urls:
+        imgs_html += f'<img src="{url}" width="80">'
+    imgs_html += '</div>'
+
+    st.markdown(imgs_html, unsafe_allow_html=True)   
     #st.image("Fapemig.png", width=80)
     #st.image("logo_IRN_b.jpg", width=80)
     st.markdown("## Sobre")
