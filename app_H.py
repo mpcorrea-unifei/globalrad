@@ -135,7 +135,7 @@ with st.sidebar:
         # Preservar tipo de imagem (png ou jpg)
         ext = Path(img).suffix.lower()
         mime = "image/png" if ext == ".png" else "image/jpeg"
-        imgs_html += f'<img src="data:{mime};base64,{b64}" width="70">'
+        imgs_html += f'<img src="data:{mime};base64,{b64}" width="65">'
     imgs_html += '</div>'
 
     st.markdown(imgs_html, unsafe_allow_html=True)   
