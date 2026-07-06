@@ -9,6 +9,8 @@ import xgboost as xgb
 from sklearn.linear_model import Lasso
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import base64
+from pathlib import Path
 
 # ------------------------------------------------------------
 # Configuração da página
@@ -113,6 +115,11 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
 #    col2.image("Unifei.png", width=80)
 #    col3.image("logo_IRN_b.jpg", width=80)
 #    col4.image("logo_CAT-removebg-preview.png", width=80)
+# Função para converter imagens
+def img_to_base64(img_path):
+    with open(img_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
 with st.sidebar:
     imagens = [
         "Fapemig.png",
