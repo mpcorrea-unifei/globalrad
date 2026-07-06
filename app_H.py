@@ -114,17 +114,21 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
 #    col3.image("logo_IRN_b.jpg", width=80)
 #    col4.image("logo_CAT-removebg-preview.png", width=80)
 with st.sidebar:
-    urls = [
+    imagens = [
         "Fapemig.png",
         "Unifei.png",
         "logo_IRN_b.jpg",
         "logo_CAT-removebg-preview.png"
     ]
 
-    # Construir HTML com flexbox para centralizar as imagens
+    # Converter cada imagem para base64 e construir o HTML
     imgs_html = '<div style="display: flex; justify-content: center; gap: 10px;">'
-    for url in urls:
-        imgs_html += f'<img src="{url}" width="80">'
+    for img in imagens:
+        b64 = img_to_base64(img)
+        # Preservar tipo de imagem (png ou jpg)
+        ext = Path(img).suffix.lower()
+        mime = "image/png" if ext == ".png" else "image/jpeg"
+        imgs_html += f'<img src="data:{mime};base64,{b64}" width="80">'
     imgs_html += '</div>'
 
     st.markdown(imgs_html, unsafe_allow_html=True)   
