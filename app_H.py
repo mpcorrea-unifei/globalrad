@@ -113,13 +113,13 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
 #    col2.image("Unifei.png", width=80)
 #    col3.image("logo_IRN_b.jpg", width=80)
 #    col4.image("logo_CAT-removebg-preview.png", width=80)
- with st.sidebar:
-    urls = [
-        "Fapemig.png",
-        "Unifei.png",
-        "logo_IRN_b.jpg",
-        "logo_CAT-removebg-preview.png"
-    ]
+with st.sidebar:
+   urls = [
+       "Fapemig.png",
+       "Unifei.png",
+       "logo_IRN_b.jpg",
+       "logo_CAT-removebg-preview.png"
+   ]
 
     # Construir HTML com flexbox para centralizar as imagens
     imgs_html = '<div style="display: flex; justify-content: center; gap: 10px;">'
