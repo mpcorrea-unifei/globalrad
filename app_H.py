@@ -108,10 +108,11 @@ def load_xgboost_model(model_path='H_xgboost.json', scaler_path='scaler_H_xgboos
 # Sidebar – informações e configurações
 # ------------------------------------------------------------
 with st.sidebar:
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.image("Fapemig.png", width=80)
-    col2.image("logo_IRN_b.jpg", width=80)
-    col3.image("logo_CAT-removebg-preview.png", width=80)
+    col2.image("Unifei.png", width=80)
+    col3.image("logo_IRN_b.jpg", width=80)
+    col4.image("logo_CAT-removebg-preview.png", width=80)
     
     #st.image("Fapemig.png", width=80)
     #st.image("logo_IRN_b.jpg", width=80)
