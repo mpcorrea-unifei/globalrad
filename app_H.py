@@ -16,7 +16,7 @@ from pathlib import Path
 # Configuração da página
 # ------------------------------------------------------------
 st.set_page_config(
-    page_title="RadSolar - Estimativa de Radiação Solar",
+    page_title="GSR-ML - Estimativa de Radiação Solar",
     page_icon="☀️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -165,7 +165,7 @@ with st.sidebar:
 # Cabeçalho principal
 # ------------------------------------------------------------
 st.markdown('<div class="main-header">☀️ SolarRad</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Estimativa Inteligente de Radiação Solar Global</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Global Solar Radiation via Machine Learning</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------
 # Layout de entrada de dados (colunas)
