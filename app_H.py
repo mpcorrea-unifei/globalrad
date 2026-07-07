@@ -164,8 +164,27 @@ with st.sidebar:
 # ------------------------------------------------------------
 # Cabeçalho principal
 # ------------------------------------------------------------
-st.markdown('<div class="main-header">☀️ GSR-ML</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Global Solar Radiation via Machine Learning</div>', unsafe_allow_html=True)
+#st.markdown('<div class="main-header">☀️ GSR-ML</div>', unsafe_allow_html=True)
+#st.markdown('<div class="sub-header">Global Solar Radiation via Machine Learning</div>', unsafe_allow_html=True)
+
+logo_path = "GSR-ML.png"   # ajuste a extensão (.png, .jpg, etc.)
+try:
+    logo_b64 = img_to_base64(logo_path)
+    logo_ext = Path(logo_path).suffix.lower()
+    logo_mime = "image/png" if logo_ext == ".png" else "image/jpeg"
+    logo_html = f'<img src="data:{logo_mime};base64,{logo_b64}" width="150">'
+except FileNotFoundError:
+    logo_html = ""  # se a imagem não existir, o título aparece sem logotipo
+    st.warning(f"Logotipo '{logo_path}' não encontrado.")
+
+header_html = f'''
+<div style="text-align: center; margin-bottom: 20px;">
+    {logo_html}
+    <div class="main-header">☀️ GSR-ML</div>
+    <div class="sub-header">Global Solar Radiation via Machine Learning</div>
+</div>
+'''
+st.markdown(header_html, unsafe_allow_html=True)
 
 # ------------------------------------------------------------
 # Layout de entrada de dados (colunas)
