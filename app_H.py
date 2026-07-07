@@ -164,7 +164,7 @@ with st.sidebar:
 # ------------------------------------------------------------
 # Cabeçalho principal
 # ------------------------------------------------------------
-st.markdown('<div class="main-header">☀️ SolarRad</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">☀️ GSR-ML</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Global Solar Radiation via Machine Learning</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------
