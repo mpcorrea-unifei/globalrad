@@ -172,7 +172,7 @@ try:
     logo_b64 = img_to_base64(logo_path)
     logo_ext = Path(logo_path).suffix.lower()
     logo_mime = "image/png" if logo_ext == ".png" else "image/jpeg"
-    logo_html = f'<img src="data:{logo_mime};base64,{logo_b64}" width="150">'
+    logo_html = f'<img src="data:{logo_mime};base64,{logo_b64}" width="200">'
 except FileNotFoundError:
     logo_html = ""  # se a imagem não existir, o título aparece sem logotipo
     st.warning(f"Logotipo '{logo_path}' não encontrado.")
